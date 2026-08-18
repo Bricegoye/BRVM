@@ -1,6 +1,11 @@
 name: BRVM Daily Collector
 
 on:
+  # Lancement automatique du lundi au vendredi à 18h45 UTC
+  schedule:
+    - cron: "45 18 * * 1-5"
+
+  # Permet également de lancer le collecteur manuellement
   workflow_dispatch:
 
 jobs:
@@ -33,5 +38,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run BRVM collector
-        run: |
-          python main.py
+        run: python main.py
