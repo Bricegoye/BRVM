@@ -1,0 +1,23 @@
+# Environnement Python
+.venv/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/
+
+# Données locales
+data/raw/
+data/processed/
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
