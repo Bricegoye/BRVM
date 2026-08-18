@@ -26,6 +26,12 @@ class MarketIndexRepository:
                         category
                     )
                     VALUES (%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (
+                        session_date,
+                        name,
+                        category
+                    )
+                    DO NOTHING;
                     """,
                     (
                         index.session_date,

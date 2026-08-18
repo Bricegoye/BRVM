@@ -22,6 +22,11 @@ class MarketActivityRepository:
                         value
                     )
                     VALUES (%s,%s,%s)
+                    ON CONFLICT (
+                        session_date,
+                        label
+                    )
+                    DO NOTHING;
                     """,
                     (
                         activity.session_date,

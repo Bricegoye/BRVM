@@ -40,6 +40,11 @@ class DailyPriceRepository:
                         volume
                     )
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (
+                        company_id,
+                        trade_date
+                    )
+                    DO NOTHING;
                     """,
                     (
                         company_id,

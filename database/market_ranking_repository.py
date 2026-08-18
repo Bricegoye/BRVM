@@ -24,6 +24,12 @@ class MarketRankingRepository:
                         variation_percent
                     )
                     VALUES (%s,%s,%s,%s,%s)
+                    ON CONFLICT (
+                        session_date,
+                        ranking_type,
+                        symbol
+                    )
+                    DO NOTHING;
                     """,
                     (
                         ranking.session_date,
