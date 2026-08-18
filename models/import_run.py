@@ -4,16 +4,9 @@ from datetime import datetime
 
 @dataclass(slots=True)
 class ImportRun:
-    """
-    Historique des imports.
-    """
-
-    started_at: datetime
-
-    finished_at: datetime | None
-
+    run_date: datetime
     status: str
-
-    records_imported: int
-
-    error_message: str | None = None
+    source: str
+    rows_imported: int
+    duration_seconds: float
+    message: str | None = None
