@@ -10,8 +10,30 @@ class MarketRankingRepository:
 
     def save(self, rankings: list[MarketRanking]):
 
+        if not rankings:
+            return
+
+        # Récupération des dates concernées par l'import
+        session_dates = {
+            ranking.session_date
+            for ranking in rankings
+        }
+
         with self.conn.cursor() as cur:
 
+            # Le ranking représente un snapshot.
+            # On remplace donc le classement existant de la séance.
+            for session_date in session_dates:
+
+                cur.execute(
+                    """
+                    DELETE FROM market_rankings
+                    WHERE session_date = %s;
+                    """,
+                    (session_date,),
+                )
+
+            # Insertion du classement actuel
             for ranking in rankings:
 
                 cur.execute(
