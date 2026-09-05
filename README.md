@@ -10,6 +10,17 @@ The project demonstrates an end-to-end data workflow combining **Python, Postgre
 
 ---
 
+## 📊 Dashboard Preview
+
+![BRVM Analytics Dashboard](docs/images/brvm-dashboard-overview.png)
+
+The dashboard provides an overview of BRVM market activity, including market indices, historical trends, trading activity, top gainers and losers, period performance and listed companies.
+
+👉 **[Open the live dashboard](https://dashboard-brice-goye.vercel.app/)**
+
+---
+
+
 ## 🎯 Project Goal
 
 Public BRVM market data is available online, but building historical and analytical use cases requires reliable daily collection, structured storage and data-quality controls.
