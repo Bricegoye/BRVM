@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,7 +11,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import type { StockRow } from "@/services/stock.service";
+import type {
+  StockRow,
+} from "@/services/stock.service";
 
 type Props = {
   stocks: StockRow[];
@@ -25,6 +29,10 @@ function formatPrice(value: number) {
 
 function formatVolume(value: number) {
   return new Intl.NumberFormat("fr-FR").format(value);
+}
+
+function getStockUrl(symbol: string) {
+  return `/actions/${encodeURIComponent(symbol)}`;
 }
 
 function Variation({
@@ -84,7 +92,8 @@ export default function StocksTable({
   const currentPage = Math.min(page, totalPages);
 
   const visibleStocks = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const start =
+      (currentPage - 1) * ITEMS_PER_PAGE;
 
     return filteredStocks.slice(
       start,
@@ -99,8 +108,6 @@ export default function StocksTable({
 
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Header */}
-
       <div className="flex flex-col gap-4 border-b border-slate-100 p-4 sm:p-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-lg font-bold text-slate-950">
@@ -137,9 +144,10 @@ export default function StocksTable({
 
           <div className="divide-y divide-slate-100 md:hidden">
             {visibleStocks.map((stock) => (
-              <article
+              <Link
                 key={stock.companyId}
-                className="p-4 transition hover:bg-slate-50"
+                href={getStockUrl(stock.symbol)}
+                className="block p-4 transition hover:bg-slate-50 active:bg-blue-50"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -165,6 +173,7 @@ export default function StocksTable({
 
                     <p className="mt-1 font-semibold text-slate-900">
                       {formatPrice(stock.closePrice)}
+
                       <span className="ml-1 text-xs font-normal text-slate-400">
                         FCFA
                       </span>
@@ -181,14 +190,18 @@ export default function StocksTable({
                     </p>
                   </div>
                 </div>
-              </article>
+
+                <p className="mt-3 text-right text-xs font-semibold text-blue-600">
+                  Voir la fiche →
+                </p>
+              </Link>
             ))}
           </div>
 
           {/* Tableau tablette et ordinateur */}
 
           <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[760px]">
+            <table className="w-full min-w-[820px]">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/70 text-left">
                   <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -210,6 +223,10 @@ export default function StocksTable({
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Volume
                   </th>
+
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Détail
+                  </th>
                 </tr>
               </thead>
 
@@ -220,15 +237,21 @@ export default function StocksTable({
                     className="border-b border-slate-100 transition last:border-0 hover:bg-slate-50"
                   >
                     <td className="px-6 py-4">
-                      <span className="font-bold text-slate-950">
+                      <Link
+                        href={getStockUrl(stock.symbol)}
+                        className="font-bold text-slate-950 transition hover:text-blue-600"
+                      >
                         {stock.symbol}
-                      </span>
+                      </Link>
                     </td>
 
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-700">
+                      <Link
+                        href={getStockUrl(stock.symbol)}
+                        className="text-sm text-slate-700 transition hover:text-blue-600"
+                      >
                         {stock.companyName}
-                      </span>
+                      </Link>
                     </td>
 
                     <td className="whitespace-nowrap px-6 py-4 text-right">
@@ -250,6 +273,16 @@ export default function StocksTable({
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-slate-700">
                       {formatVolume(stock.volume)}
                     </td>
+
+                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                      <Link
+                        href={getStockUrl(stock.symbol)}
+                        aria-label={`Consulter la fiche ${stock.symbol}`}
+                        className="inline-flex rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-600 hover:text-white"
+                      >
+                        Voir la fiche
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -267,8 +300,6 @@ export default function StocksTable({
           </p>
         </div>
       )}
-
-      {/* Footer et pagination */}
 
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 px-4 py-4 sm:px-6">
         <p className="text-xs text-slate-400">
