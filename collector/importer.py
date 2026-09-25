@@ -28,7 +28,7 @@ from database.import_run_repository import (
 from models.import_run import ImportRun
 
 
-EXPECTED_PRICES = 47
+EXPECTED_PRICES = 48
 EXPECTED_INDICES = 12
 EXPECTED_ACTIVITIES = 3
 EXPECTED_RANKINGS = 10
