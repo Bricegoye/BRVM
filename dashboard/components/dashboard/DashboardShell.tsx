@@ -1,14 +1,13 @@
 import type { ReactNode } from "react";
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import LogoutButton from "@/components/dashboard/LogoutButton";
 
 type Props = {
   children: ReactNode;
 };
 
-export default function DashboardShell({
-  children,
-}: Props) {
+export default function DashboardShell({ children }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <DashboardSidebar />
@@ -28,6 +27,7 @@ export default function DashboardShell({
         "
       >
         <div className="mx-auto w-full max-w-[1600px]">
+          <LogoutButton />
           {children}
         </div>
       </section>
