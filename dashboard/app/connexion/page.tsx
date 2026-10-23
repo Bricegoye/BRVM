@@ -54,6 +54,12 @@ export default function LoginPage() {
           <button type="submit" disabled={loading} className="w-full rounded-xl bg-blue-700 px-5 py-4 text-lg font-semibold text-white hover:bg-blue-800 disabled:opacity-60">{loading ? "Connexion en cours…" : "Se connecter"}</button>
         </form>
         <Link href="/mot-de-passe" className="mt-6 inline-block text-lg font-semibold text-blue-700 underline underline-offset-4">Mot de passe oublié ?</Link>
+        <Link
+  href="/"
+  className="mt-4 block rounded-xl border border-slate-300 px-5 py-3 text-center text-lg font-semibold text-slate-700 transition hover:bg-slate-100"
+>
+  Retour à l’accueil
+</Link>
       </section>
     </main>
   );
