@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+**/node_modules
+dashboard
+logs
+data
+.DS_Store
