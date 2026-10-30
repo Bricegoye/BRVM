@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: brvm
+    description: "Données BRVM chargées par le collecteur Python."
+    schema: public
+    tables:
+      - name: daily_prices
+        description: "Cotations quotidiennes des sociétés BRVM."
+
+      - name: companies
+        description: "Référentiel des sociétés BRVM."

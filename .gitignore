@@ -21,3 +21,8 @@ data/processed/
 
 # VS Code
 .vscode/
+
+# Fichiers générés par dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/.user.yml

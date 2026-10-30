@@ -1,0 +1,19 @@
+name: brvm_analytics
+version: "1.0.0"
+config-version: 2
+
+profile: brvm_analytics
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  brvm_analytics:
+    +materialized: view
