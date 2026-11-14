@@ -155,3 +155,45 @@ export async function getStockDetails(
     history,
   };
 }
+
+export type StockPerformance5Obs =
+  | { status: "available"; referenceDate: string; adjustedChangePct: number }
+  | { status: "insufficient" }
+  | { status: "unavailable" };
+
+export async function getStockPerformance5Obs(
+  companyId: number,
+  tradeDate: string
+): Promise<StockPerformance5Obs> {
+  const { data, error } = await supabase
+    .rpc("get_stock_performance_5_obs", {
+      p_company_id: companyId,
+      p_trade_date: tradeDate,
+    })
+    .maybeSingle<{
+      reference_date: string | null;
+      adjusted_change_pct: number | string | null;
+    }>();
+
+  if (error || !data) {
+    return { status: "unavailable" };
+  }
+
+  if (data.reference_date === null && data.adjusted_change_pct === null) {
+    return { status: "insufficient" };
+  }
+
+  if (data.reference_date === null || data.adjusted_change_pct === null) {
+    return { status: "unavailable" };
+  }
+
+  const adjustedChangePct = Number(data.adjusted_change_pct);
+
+  return Number.isFinite(adjustedChangePct)
+    ? {
+        status: "available",
+        referenceDate: data.reference_date,
+        adjustedChangePct,
+      }
+    : { status: "unavailable" };
+}

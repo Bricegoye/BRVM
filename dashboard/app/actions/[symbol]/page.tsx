@@ -14,6 +14,7 @@ import StockHistoryChart from "@/components/dashboard/StockHistoryChart";
 
 import {
   getStockDetails,
+  getStockPerformance5Obs,
 } from "@/services/stock.service";
 
 export const revalidate = 3600;
@@ -65,6 +66,10 @@ export default async function StockDetailsPage({
   }
 
   const latest = stock.latestPrice;
+
+const performance = latest
+  ? await getStockPerformance5Obs(stock.companyId, latest.tradeDate)
+  : null;
 
   const recentPrices = [...stock.history]
     .reverse()
@@ -247,6 +252,44 @@ export default async function StockDetailsPage({
           </p>
         </article>
       </section>
+
+<section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <h2 className="font-bold text-slate-900">
+    Variation du cours sur 5 observations
+  </h2>
+
+  {performance?.status === "available" && latest ? (
+    <>
+      <p
+        className={`mt-2 text-2xl font-bold ${variationColor(
+          performance.adjustedChangePct
+        )}`}
+      >
+        {new Intl.NumberFormat("fr-FR", {
+          style: "percent",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+          signDisplay: "exceptZero",
+        }).format(performance.adjustedChangePct / 100)}
+      </p>
+
+      <p className="mt-1 text-sm text-slate-600">
+        Du {formatDate(performance.referenceDate)} au{" "}
+        {formatDate(latest.tradeDate)}
+      </p>
+
+      <p className="mt-1 text-xs text-slate-500">
+        Variation du cours ajustée des fractionnements connus, hors dividendes.
+      </p>
+    </>
+  ) : (
+    <p className="mt-2 text-sm text-slate-600">
+      {performance?.status === "insufficient"
+        ? "Historique insuffisant"
+        : "Variation indisponible"}
+    </p>
+  )}
+</section>
 
       <StockHistoryChart
         history={stock.history}
