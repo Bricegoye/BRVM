@@ -11,11 +11,11 @@ import {
 } from "recharts";
 
 import type {
-  StockHistoryPoint,
+  AdjustedHistoryPoint,
 } from "@/services/stock.service";
 
 type Props = {
-  history: StockHistoryPoint[];
+  history: AdjustedHistoryPoint[];
   symbol: string;
 };
 
@@ -28,7 +28,7 @@ function formatDate(date: string) {
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -45,17 +45,17 @@ export default function StockHistoryChart({
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold text-slate-950">
-          Historique du cours
+          Historique du cours ajusté
         </h2>
 
         <div className="mt-6 rounded-xl bg-slate-50 px-4 py-10 text-center">
           <p className="text-sm font-medium text-slate-600">
-            Aucun historique disponible
+            Aucun historique ajusté disponible
           </p>
 
-          <p className="mt-1 text-sm text-slate-400">
-            Le graphique apparaîtra après la collecte des
-            premières cotations.
+          <p className="mt-1 text-sm text-slate-500">
+            Le graphique apparaîtra lorsque les cours ajustés
+            seront disponibles.
           </p>
         </div>
       </div>
@@ -66,18 +66,19 @@ export default function StockHistoryChart({
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="mb-6">
         <h2 className="text-lg font-bold text-slate-950">
-          Historique du cours
+          Historique du cours ajusté
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Évolution de {symbol} sur les séances disponibles
+        <p className="mt-1 text-sm text-slate-600">
+          Évolution de {symbol}, ajustée des fractionnements
+          connus, hors dividendes.
         </p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-8 border-b border-slate-100 pb-5">
         <div>
-          <p className="text-xs text-slate-400">
-            Première cotation
+          <p className="text-xs text-slate-500">
+            Premier cours ajusté
           </p>
 
           <p className="mt-1 font-semibold text-slate-900">
@@ -86,8 +87,8 @@ export default function StockHistoryChart({
         </div>
 
         <div>
-          <p className="text-xs text-slate-400">
-            Dernière cotation
+          <p className="text-xs text-slate-500">
+            Dernier cours ajusté
           </p>
 
           <p className="mt-1 font-semibold text-slate-900">
@@ -99,8 +100,8 @@ export default function StockHistoryChart({
         </div>
 
         <div>
-          <p className="text-xs text-slate-400">
-            Séances disponibles
+          <p className="text-xs text-slate-500">
+            Observations disponibles
           </p>
 
           <p className="mt-1 font-semibold text-slate-900">
@@ -154,7 +155,7 @@ export default function StockHistoryChart({
               tickLine={false}
               minTickGap={24}
               tick={{
-                fill: "#94a3b8",
+                fill: "#64748b",
                 fontSize: 12,
               }}
             />
@@ -163,12 +164,12 @@ export default function StockHistoryChart({
               domain={["auto", "auto"]}
               axisLine={false}
               tickLine={false}
-              width={70}
+              width={80}
               tickFormatter={(value) =>
                 formatPrice(Number(value))
               }
               tick={{
-                fill: "#94a3b8",
+                fill: "#64748b",
                 fontSize: 12,
               }}
             />
@@ -176,15 +177,15 @@ export default function StockHistoryChart({
             <Tooltip
               formatter={(value) => [
                 `${formatPrice(Number(value))} FCFA`,
-                "Cours",
+                "Cours ajusté",
               ]}
               labelFormatter={(label) =>
-                `Séance du ${label}`
+                `Cotation du ${label}`
               }
             />
 
             <Area
-              type="monotone"
+              type="linear"
               dataKey="closePrice"
               stroke="#2563eb"
               strokeWidth={3}
@@ -198,8 +199,9 @@ export default function StockHistoryChart({
       {chartData.length < 20 && (
         <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-sm text-amber-800">
-            Historique encore limité : les performances longues
-            seront disponibles après au moins 20 séances.
+            Historique encore limité : les indicateurs sur
+            des périodes plus longues nécessitent davantage
+            de cotations.
           </p>
         </div>
       )}

@@ -15,6 +15,7 @@ import StockHistoryChart from "@/components/dashboard/StockHistoryChart";
 import {
   getStockDetails,
   getStockPerformance5Obs,
+  getStockAdjustedHistory,
 } from "@/services/stock.service";
 
 export const revalidate = 3600;
@@ -31,6 +32,12 @@ function formatPrice(value: number) {
   }).format(value);
 }
 
+function formatAdjustedPrice(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("fr-FR").format(value);
 }
@@ -41,6 +48,15 @@ function formatDate(value: string) {
     month: "long",
     year: "numeric",
   }).format(new Date(`${value}T12:00:00`));
+}
+
+function formatPercent(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay: "exceptZero",
+  }).format(value / 100);
 }
 
 function variationColor(value: number) {
@@ -67,17 +83,37 @@ export default async function StockDetailsPage({
 
   const latest = stock.latestPrice;
 
-const performance = latest
-  ? await getStockPerformance5Obs(stock.companyId, latest.tradeDate)
-  : null;
+  const performance = latest
+    ? await getStockPerformance5Obs(
+        stock.companyId,
+        latest.tradeDate
+      )
+    : null;
+
+  const adjustedHistory = latest
+    ? await getStockAdjustedHistory(
+        stock.companyId,
+        latest.tradeDate
+      )
+    : null;
+
+  const chartHistory =
+    adjustedHistory?.status === "available" &&
+    adjustedHistory.history.length === stock.history.length &&
+    adjustedHistory.history.every(
+      (point, index) =>
+        point.tradeDate === stock.history[index].tradeDate
+    )
+      ? adjustedHistory.history
+      : null;
 
   const recentPrices = [...stock.history]
     .reverse()
     .slice(0, 10);
 
-  const availablePrices = stock.history
+  const availablePrices = (chartHistory ?? [])
     .map((point) => point.closePrice)
-    .filter((price) => price > 0);
+    .filter((price) => Number.isFinite(price) && price > 0);
 
   const averagePrice =
     availablePrices.length > 0
@@ -130,11 +166,11 @@ const performance = latest
               </p>
 
               {latest && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-slate-400">
+                <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
                   <CalendarDays size={15} />
 
                   <span>
-                    Dernière séance :{" "}
+                    Dernière cotation :{" "}
                     {formatDate(latest.tradeDate)}
                   </span>
                 </div>
@@ -144,13 +180,13 @@ const performance = latest
 
           {latest ? (
             <div className="lg:text-right">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500">
                 Dernier cours
               </p>
 
               <p className="mt-1 text-3xl font-bold text-slate-950">
                 {formatPrice(latest.closePrice)}
-                <span className="ml-2 text-sm font-medium text-slate-400">
+                <span className="ml-2 text-sm font-medium text-slate-500">
                   FCFA
                 </span>
               </p>
@@ -160,8 +196,7 @@ const performance = latest
                   latest.variationPercent
                 )}`}
               >
-                {latest.variationPercent > 0 ? "+" : ""}
-                {latest.variationPercent.toFixed(2)} %
+                {formatPercent(latest.variationPercent)}
               </p>
             </div>
           ) : (
@@ -174,7 +209,7 @@ const performance = latest
 
       <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex items-center gap-2 text-slate-500">
             <Database size={17} />
 
             <p className="text-xs font-semibold uppercase tracking-wide">
@@ -186,115 +221,137 @@ const performance = latest
             {latest ? formatNumber(latest.volume) : "—"}
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
-            Dernière séance
+          <p className="mt-1 text-xs text-slate-500">
+            Dernière cotation
           </p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex items-center gap-2 text-slate-500">
             <ChartNoAxesCombined size={17} />
 
             <p className="text-xs font-semibold uppercase tracking-wide">
-              Cours moyen
+              Cours moyen ajusté
             </p>
           </div>
 
           <p className="mt-3 text-2xl font-bold text-slate-950">
             {averagePrice !== null
-              ? formatPrice(averagePrice)
+              ? formatAdjustedPrice(averagePrice)
               : "—"}
-            <span className="ml-1 text-xs font-normal text-slate-400">
+            <span className="ml-1 text-xs font-normal text-slate-500">
               FCFA
             </span>
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
-            Historique disponible
+          <p className="mt-1 text-xs text-slate-500">
+            Moyenne des clôtures disponibles
           </p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Plus bas
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Plus bas ajusté
           </p>
 
           <p className="mt-3 text-2xl font-bold text-slate-950">
             {lowestPrice !== null
-              ? formatPrice(lowestPrice)
+              ? formatAdjustedPrice(lowestPrice)
               : "—"}
-            <span className="ml-1 text-xs font-normal text-slate-400">
+            <span className="ml-1 text-xs font-normal text-slate-500">
               FCFA
             </span>
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
-            Période collectée
+          <p className="mt-1 text-xs text-slate-500">
+            Minimum des clôtures disponibles
           </p>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Plus haut
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Plus haut ajusté
           </p>
 
           <p className="mt-3 text-2xl font-bold text-slate-950">
             {highestPrice !== null
-              ? formatPrice(highestPrice)
+              ? formatAdjustedPrice(highestPrice)
               : "—"}
-            <span className="ml-1 text-xs font-normal text-slate-400">
+            <span className="ml-1 text-xs font-normal text-slate-500">
               FCFA
             </span>
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
-            Période collectée
+          <p className="mt-1 text-xs text-slate-500">
+            Maximum des clôtures disponibles
           </p>
         </article>
       </section>
 
-<section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-  <h2 className="font-bold text-slate-900">
-    Variation du cours sur 5 observations
-  </h2>
+      {chartHistory && latest && (
+        <p className="mb-8 text-sm leading-6 text-slate-600">
+          Statistiques calculées du{" "}
+          {formatDate(chartHistory[0].tradeDate)} au{" "}
+          {formatDate(latest.tradeDate)}, sur{" "}
+          {chartHistory.length} cotations disponibles.
+          Les cours sont ajustés des fractionnements connus
+          sur la base du {formatDate(latest.tradeDate)}.
+          Les dividendes ne sont pas inclus.
+        </p>
+      )}
 
-  {performance?.status === "available" && latest ? (
-    <>
-      <p
-        className={`mt-2 text-2xl font-bold ${variationColor(
-          performance.adjustedChangePct
-        )}`}
-      >
-        {new Intl.NumberFormat("fr-FR", {
-          style: "percent",
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-          signDisplay: "exceptZero",
-        }).format(performance.adjustedChangePct / 100)}
-      </p>
+      <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-bold text-slate-900">
+          Variation du cours sur 5 observations
+        </h2>
 
-      <p className="mt-1 text-sm text-slate-600">
-        Du {formatDate(performance.referenceDate)} au{" "}
-        {formatDate(latest.tradeDate)}
-      </p>
+        {performance?.status === "available" && latest ? (
+          <>
+            <p
+              className={`mt-2 text-2xl font-bold ${variationColor(
+                performance.adjustedChangePct
+              )}`}
+            >
+              {formatPercent(performance.adjustedChangePct)}
+            </p>
 
-      <p className="mt-1 text-xs text-slate-500">
-        Variation du cours ajustée des fractionnements connus, hors dividendes.
-      </p>
-    </>
-  ) : (
-    <p className="mt-2 text-sm text-slate-600">
-      {performance?.status === "insufficient"
-        ? "Historique insuffisant"
-        : "Variation indisponible"}
-    </p>
-  )}
-</section>
+            <p className="mt-1 text-sm text-slate-600">
+              Du {formatDate(performance.referenceDate)} au{" "}
+              {formatDate(latest.tradeDate)}
+            </p>
 
-      <StockHistoryChart
-        history={stock.history}
-        symbol={stock.symbol}
-      />
+            <p className="mt-1 text-xs text-slate-500">
+              Variation du cours ajustée des fractionnements
+              connus, hors dividendes.
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-slate-600">
+            {performance?.status === "insufficient"
+              ? "Historique insuffisant"
+              : "Variation indisponible"}
+          </p>
+        )}
+      </section>
+
+      {chartHistory ? (
+        <StockHistoryChart
+          history={chartHistory}
+          symbol={stock.symbol}
+        />
+      ) : (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-bold text-slate-950">
+            Historique du cours ajusté
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-600">
+            {stock.history.length === 0
+              ? "Aucune cotation disponible."
+              : "Historique ajusté temporairement indisponible."}
+          </p>
+        </section>
+      )}
 
       <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 p-5 sm:p-6">
@@ -302,8 +359,10 @@ const performance = latest
             Dernières cotations
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Les 10 séances les plus récentes
+          <p className="mt-1 text-sm text-slate-600">
+            Les 10 cotations les plus récentes. Les cours
+            ci-dessous sont les cours bruts collectés,
+            sans ajustement rétrospectif des fractionnements.
           </p>
         </div>
 
@@ -313,15 +372,15 @@ const performance = latest
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/70 text-left">
                   <th className="px-5 py-4 text-xs font-semibold uppercase text-slate-500 sm:px-6">
-                    Séance
+                    Date
                   </th>
 
                   <th className="px-5 py-4 text-right text-xs font-semibold uppercase text-slate-500 sm:px-6">
-                    Cours
+                    Cours brut
                   </th>
 
                   <th className="px-5 py-4 text-right text-xs font-semibold uppercase text-slate-500 sm:px-6">
-                    Variation
+                    Variation publiée
                   </th>
 
                   <th className="px-5 py-4 text-right text-xs font-semibold uppercase text-slate-500 sm:px-6">
@@ -342,7 +401,7 @@ const performance = latest
 
                     <td className="px-5 py-4 text-right font-semibold text-slate-900 sm:px-6">
                       {formatPrice(price.closePrice)}
-                      <span className="ml-1 text-xs font-normal text-slate-400">
+                      <span className="ml-1 text-xs font-normal text-slate-500">
                         FCFA
                       </span>
                     </td>
@@ -352,10 +411,7 @@ const performance = latest
                         price.variationPercent
                       )}`}
                     >
-                      {price.variationPercent > 0
-                        ? "+"
-                        : ""}
-                      {price.variationPercent.toFixed(2)} %
+                      {formatPercent(price.variationPercent)}
                     </td>
 
                     <td className="px-5 py-4 text-right text-sm text-slate-700 sm:px-6">
@@ -378,10 +434,11 @@ const performance = latest
           Performances longues
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Les performances sur 20 et 60 séances ainsi que la
-          comparaison avec le BRVM Composite seront activées
-          lorsque l’historique disponible sera suffisant.
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Les indicateurs sur 20 et 60 observations ainsi que
+          la comparaison avec le BRVM Composite seront
+          ajoutés après validation des calculs et de la
+          couverture des données.
         </p>
       </section>
     </DashboardShell>
